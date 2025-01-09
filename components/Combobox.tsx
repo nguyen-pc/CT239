@@ -17,6 +17,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useGraph } from "@/context/GraphContext";
+import { kruskal } from "@/app/algorthms/kuskal";
 
 const frameworks = [
   {
@@ -60,9 +62,43 @@ export function ComboboxDemo() {
   const [subValue, setSubValue] = React.useState("");
   const [sourceVertex, setSourceVertex] = React.useState("");
 
+  // Lấy dữ liệu và functions từ context
+  const { edges, vertexCount, setAlgorithmResult } = useGraph();
+
   const selectedFramework = frameworks.find(
     (framework) => framework.value === value
   );
+
+  // Hàm thực hiện thuật toán
+  const runAlgorithm = () => {
+    if (!edges || edges.length === 0) {
+      alert("Vui lòng nhập dữ liệu đồ thị trước!");
+      return;
+    }
+
+    switch (subValue) {
+      case "kruskal":
+        const result = kruskal(edges, vertexCount);
+        console.log(result.totalWeight);
+        setAlgorithmResult(result);
+        break;
+
+      case "prim":
+        // Thêm code cho thuật toán Prim
+        break;
+
+      case "dijkstra":
+        if (!sourceVertex) {
+          alert("Vui lòng chọn đỉnh nguồn!");
+          return;
+        }
+        // Thêm code cho thuật toán Dijkstra
+        break;
+
+      default:
+        alert("Vui lòng chọn thuật toán!");
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -215,7 +251,16 @@ export function ComboboxDemo() {
         </Popover>
       )}
 
-      <Button>Hiển thị kết quả</Button>
+      <Button
+        onClick={runAlgorithm}
+        disabled={
+          !value ||
+          !subValue ||
+          (selectedFramework?.requiresSource && !sourceVertex)
+        }
+      >
+        Thực hiện thuật toán
+      </Button>
     </div>
   );
 }

@@ -4,52 +4,48 @@ interface Edge {
   weight: number;
 }
 
-function findRoot(parent: number[], u: number): number {
-  while (parent[u] !== u) {
-    u = parent[u];
-  }
-  return u;
+// Hàm tìm đại diện của tập hợp
+function find(parent: number[], i: number): number {
+  if (parent[i] === i) return i;
+  return (parent[i] = find(parent, parent[i]));
 }
 
-export const kruskal = (
-  edges: [number, number, number][],
-  vertexCount: number
-): {
-  mst: Edge[];
-  totalWeight: number;
-  steps: Edge[][];
-} => {
-  const steps: Edge[][] = [];
+// Hàm hợp nhất hai tập hợp
+function union(parent: number[], rank: number[], x: number, y: number) {
+  const xRoot = find(parent, x);
+  const yRoot = find(parent, y);
 
-  // Chuyển đổi định dạng cạnh
-  const formattedEdges: Edge[] = edges.map(([u, v, w]) => ({
-    source: u,
-    target: v,
-    weight: w,
-  }));
+  if (rank[xRoot] < rank[yRoot]) {
+    parent[xRoot] = yRoot;
+  } else if (rank[xRoot] > rank[yRoot]) {
+    parent[yRoot] = xRoot;
+  } else {
+    parent[yRoot] = xRoot;
+    rank[xRoot]++;
+  }
+}
 
+export function kruskal(edges: Edge[], vertexCount: number) {
   // Sắp xếp các cạnh theo trọng số tăng dần
-  formattedEdges.sort((a, b) => a.weight - b.weight);
-
+  const sortedEdges = [...edges].sort((a, b) => a.weight - b.weight);
+  
   const parent = Array.from({ length: vertexCount }, (_, i) => i);
+  const rank = new Array(vertexCount).fill(0);
   const mst: Edge[] = [];
-  let totalWeight = 0;
 
-  for (const edge of formattedEdges) {
-    const sourceRoot = findRoot(parent, edge.source);
-    const targetRoot = findRoot(parent, edge.target);
+  for (const edge of sortedEdges) {
+    const sourceRoot = find(parent, edge.source);
+    const targetRoot = find(parent, edge.target);
 
+    // Nếu thêm cạnh này không tạo chu trình
     if (sourceRoot !== targetRoot) {
       mst.push(edge);
-      totalWeight += edge.weight;
-      parent[sourceRoot] = targetRoot;
-      steps.push([...mst]);
+      union(parent, rank, sourceRoot, targetRoot);
     }
   }
-
+  
   return {
     mst,
-    totalWeight,
-    steps,
+    totalWeight: mst.reduce((sum, edge) => sum + edge.weight, 0)
   };
-};
+}
