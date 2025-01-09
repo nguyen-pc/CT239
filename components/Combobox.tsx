@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { useGraph } from "@/context/GraphContext";
 import { kruskal } from "@/app/algorthms/kuskal";
+import { prim } from "@/app/algorthms/prim";
 
 const frameworks = [
   {
@@ -78,13 +79,16 @@ export function ComboboxDemo() {
 
     switch (subValue) {
       case "kruskal":
-        const result = kruskal(edges, vertexCount);
-        console.log(result.totalWeight);
-        setAlgorithmResult(result);
+        const resultKruskal = kruskal(edges, vertexCount);
+        console.log(resultKruskal.totalWeight);
+        setAlgorithmResult(resultKruskal);
         break;
 
       case "prim":
         // Thêm code cho thuật toán Prim
+        const resultPrim = prim(edges, vertexCount);
+        console.log(resultPrim.totalWeight);
+        setAlgorithmResult(resultPrim);
         break;
 
       case "dijkstra":

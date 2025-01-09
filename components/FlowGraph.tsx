@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactFlow, Controls, Background } from "@xyflow/react";
+import { ReactFlow, Controls, Background, OnNodesChange, applyNodeChanges } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import React from "react";
 import { useGraph } from "@/context/GraphContext";
@@ -16,6 +16,11 @@ export function FlowGraph() {
   const [nodes, setNodes] = React.useState([]);
   const [edges, setEdges] = React.useState([]);
 
+  // Xử lý sự kiện khi nodes thay đổi (kéo thả)
+  const onNodesChange: OnNodesChange = React.useCallback(
+    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    []
+  );
   // Vẽ đồ thị ban đầu khi có dữ liệu edges mới
   React.useEffect(() => {
     if (graphEdges && graphEdges.length > 0) {
@@ -29,6 +34,7 @@ export function FlowGraph() {
           y: 300 + 200 * Math.sin((2 * Math.PI * i) / vertexCount),
         },
         data: { label: `${i}` },
+        draggable: true,
       }));
 
       // Tạo edges với style mặc định
@@ -88,6 +94,7 @@ export function FlowGraph() {
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
+        onNodesChange={onNodesChange}
         defaultEdgeOptions={{
           style: { strokeWidth: 2 },
           // type: "smoothstep",
