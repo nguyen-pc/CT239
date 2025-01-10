@@ -36,7 +36,7 @@ export function dijkstra(
   edges.forEach((edge) => {
     if (edge.source <= vertexCount && edge.target <= vertexCount) {
       graph[edge.source][edge.target] = edge.weight;
-      graph[edge.target][edge.source] = edge.weight;
+      // graph[edge.target][edge.source] = edge.weight;   //Do thi co huong
     }
   });
 

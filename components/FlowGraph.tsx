@@ -12,7 +12,7 @@ const nodeTypes = {
 };
 
 export function FlowGraph() {
-  const { edges: graphEdges, vertexCount, algorithmResult } = useGraph();
+  const { edges: graphEdges, vertexCount, algorithmResult, algorithmResultDijkstra} = useGraph();
   const [nodes, setNodes] = React.useState([]);
   const [edges, setEdges] = React.useState([]);
 
@@ -87,6 +87,32 @@ export function FlowGraph() {
     }
   }, [algorithmResult]);
 
+  React.useEffect(() => {
+    if (algorithmResultDijkstra && edges.length > 0) {
+      const updatedEdges = edges.map((edge) => {
+        const isInDijkstra = algorithmResultDijkstra.path.some(
+          (dijkstraEdge) =>
+            `${dijkstraEdge.source}-${dijkstraEdge.target}` === edge.id ||
+            `${dijkstraEdge.target}-${dijkstraEdge.source}` === edge.id
+        );
+
+        if (isInDijkstra) {
+          return {
+            ...edge,
+            style: { stroke: "#000", strokeWidth: 3 },
+            labelStyle: { fill: "#2563eb" },
+            markerEnd: {
+              ...edge.markerEnd,
+              color: "#000",
+            },
+          };
+        }
+        return edge;
+      });
+
+      setEdges(updatedEdges);
+    }
+  }, [algorithmResultDijkstra]);
   return (
     <div style={{ height: "100%" }}>
       <ReactFlow

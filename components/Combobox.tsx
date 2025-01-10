@@ -21,6 +21,7 @@ import { useGraph } from "@/context/GraphContext";
 import { kruskal } from "@/app/algorthms/kuskal";
 import { prim } from "@/app/algorthms/prim";
 import { dijkstra } from "@/app/algorthms/dijkstra";
+import { floyd } from "@/app/algorthms/floyd";
 
 const frameworks = [
   {
@@ -43,8 +44,8 @@ const frameworks = [
     value: "minium",
     label: "Tìm đường đi ngắn nhất",
     subOptions: [
-      { value: "dijkstra", label: "Dijkstra" },
-      { value: "bellman-ford", label: "Bellman-Ford" },
+      { value: "dijkstra", label: "Dijkstra", requireTarget: true },
+      { value: "floyd", label: "Floyd", requireTarget: false },
     ],
     requiresSource: true,
   },
@@ -61,7 +62,8 @@ export function ComboboxDemo() {
   const [targetVertex, setTargetVertex] = React.useState("");
 
   // Lấy dữ liệu và functions từ context
-  const { edges, vertexCount, setAlgorithmResult } = useGraph();
+  const { edges, vertexCount, setAlgorithmResult, setAlgorithmResultDijkstra } =
+    useGraph();
 
   const selectedFramework = frameworks.find(
     (framework) => framework.value === value
@@ -83,6 +85,7 @@ export function ComboboxDemo() {
       case "kruskal":
         const resultKruskal = kruskal(edges, vertexCount);
         console.log(resultKruskal.totalWeight);
+
         setAlgorithmResult(resultKruskal);
         break;
 
@@ -98,6 +101,10 @@ export function ComboboxDemo() {
           alert("Vui lòng chọn đỉnh nguồn!");
           return;
         }
+        if (!targetVertex) {
+          alert("Vui lòng chọn đỉnh đích!");
+          return;
+        }
         console.log(sourceVertex + targetVertex);
         const resultDijkstra = dijkstra(
           edges,
@@ -105,8 +112,22 @@ export function ComboboxDemo() {
           parseInt(sourceVertex),
           parseInt(targetVertex)
         );
+        console.log(selectedFramework?.subOptions);
         console.log(resultDijkstra);
-        setAlgorithmResult(resultDijkstra);
+        setAlgorithmResultDijkstra(resultDijkstra);
+        break;
+
+      case "floyd":
+        if (!sourceVertex) {
+          alert("Vui lòng chọn đỉnh nguồn!");
+          return;
+        }
+        const resultFloyd = floyd(edges, vertexCount, parseInt(sourceVertex));
+        console.log(resultFloyd)
+
+        setAlgorithmResultDijkstra(resultFloyd)
+ 
+
         break;
 
       default:
@@ -264,63 +285,68 @@ export function ComboboxDemo() {
           </PopoverContent>
         </Popover>
       )}
-      {selectedFramework?.requiresSource && subValue && (
-        <Popover open={openTarget} onOpenChange={setOpenTarget}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openTarget}
-              className="w-[200px] justify-between"
-            >
-              {targetVertex
-                ? `Đỉnh đích: ${targetVertex}`
-                : "Chọn đỉnh đích..."}
-              <ChevronsUpDown className="opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Tìm đỉnh..." />
-              <CommandList>
-                <CommandEmpty>Không tìm thấy đỉnh.</CommandEmpty>
-                <CommandGroup>
-                  {vertices.map((vertex) => (
-                    <CommandItem
-                      key={vertex.value}
-                      value={vertex.value}
-                      onSelect={(currentValue) => {
-                        setTargetVertex(
-                          currentValue === targetVertex ? "" : currentValue
-                        );
-                        setOpenTarget(false);
-                      }}
-                    >
-                      {vertex.label}
-                      <Check
-                        className={cn(
-                          "ml-auto",
-                          targetVertex === vertex.value
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      )}
+      {selectedFramework?.requiresSource &&
+        subValue &&
+        selectedFramework.subOptions.find((option) => option.value === subValue)
+          ?.requireTarget && (
+          <Popover open={openTarget} onOpenChange={setOpenTarget}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openTarget}
+                className="w-[200px] justify-between"
+              >
+                {targetVertex
+                  ? `Đỉnh đích: ${targetVertex}`
+                  : "Chọn đỉnh đích..."}
+                <ChevronsUpDown className="opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Tìm đỉnh..." />
+                <CommandList>
+                  <CommandEmpty>Không tìm thấy đỉnh.</CommandEmpty>
+                  <CommandGroup>
+                    {vertices.map((vertex) => (
+                      <CommandItem
+                        key={vertex.value}
+                        value={vertex.value}
+                        onSelect={(currentValue) => {
+                          setTargetVertex(
+                            currentValue === targetVertex ? "" : currentValue
+                          );
+                          setOpenTarget(false);
+                        }}
+                      >
+                        {vertex.label}
+                        <Check
+                          className={cn(
+                            "ml-auto",
+                            targetVertex === vertex.value
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        )}
 
       <Button
         onClick={runAlgorithm}
         disabled={
           !value ||
-          !subValue ||
-          (selectedFramework?.requiresSource &&
-            (!sourceVertex || !targetVertex))
+          !subValue 
+          // ||
+          // (selectedFramework?.requiresSource &&
+          //   (!sourceVertex || !targetVertex)
+          // )
         }
       >
         Thực hiện thuật toán

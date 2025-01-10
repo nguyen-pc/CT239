@@ -57,7 +57,7 @@ const Sidebar = () => {
 
     // Tạo tập hợp các cạnh có thể có
     const possibleEdges = [];
-    for (let i = 0; i < vertexCount; i++) {
+    for (let i = 1; i < vertexCount; i++) {
       for (let j = i + 1; j < vertexCount; j++) {
         possibleEdges.push([i, j]);
       }
