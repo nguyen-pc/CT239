@@ -20,6 +20,7 @@ import {
 import { useGraph } from "@/context/GraphContext";
 import { kruskal } from "@/app/algorthms/kuskal";
 import { prim } from "@/app/algorthms/prim";
+import { dijkstra } from "@/app/algorthms/dijkstra";
 
 const frameworks = [
   {
@@ -49,19 +50,15 @@ const frameworks = [
   },
 ];
 
-// Giả sử đây là danh sách các đỉnh trong đồ thị
-const vertices = Array.from({ length: 10 }, (_, i) => ({
-  value: `${i + 1}`,
-  label: `Đỉnh ${i + 1}`,
-}));
-
 export function ComboboxDemo() {
   const [open, setOpen] = React.useState(false);
   const [openSub, setOpenSub] = React.useState(false);
   const [openSource, setOpenSource] = React.useState(false);
+  const [openTarget, setOpenTarget] = React.useState(false);
   const [value, setValue] = React.useState("");
   const [subValue, setSubValue] = React.useState("");
   const [sourceVertex, setSourceVertex] = React.useState("");
+  const [targetVertex, setTargetVertex] = React.useState("");
 
   // Lấy dữ liệu và functions từ context
   const { edges, vertexCount, setAlgorithmResult } = useGraph();
@@ -70,6 +67,11 @@ export function ComboboxDemo() {
     (framework) => framework.value === value
   );
 
+  // Giả sử đây là danh sách các đỉnh trong đồ thị
+  const vertices = Array.from({ length: vertexCount }, (_, i) => ({
+    value: `${i}`,
+    label: `Đỉnh ${i}`,
+  }));
   // Hàm thực hiện thuật toán
   const runAlgorithm = () => {
     if (!edges || edges.length === 0) {
@@ -96,7 +98,15 @@ export function ComboboxDemo() {
           alert("Vui lòng chọn đỉnh nguồn!");
           return;
         }
-        // Thêm code cho thuật toán Dijkstra
+        console.log(sourceVertex + targetVertex);
+        const resultDijkstra = dijkstra(
+          edges,
+          vertexCount,
+          parseInt(sourceVertex),
+          parseInt(targetVertex)
+        );
+        console.log(resultDijkstra);
+        setAlgorithmResult(resultDijkstra);
         break;
 
       default:
@@ -254,13 +264,63 @@ export function ComboboxDemo() {
           </PopoverContent>
         </Popover>
       )}
+      {selectedFramework?.requiresSource && subValue && (
+        <Popover open={openTarget} onOpenChange={setOpenTarget}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={openTarget}
+              className="w-[200px] justify-between"
+            >
+              {targetVertex
+                ? `Đỉnh đích: ${targetVertex}`
+                : "Chọn đỉnh đích..."}
+              <ChevronsUpDown className="opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Tìm đỉnh..." />
+              <CommandList>
+                <CommandEmpty>Không tìm thấy đỉnh.</CommandEmpty>
+                <CommandGroup>
+                  {vertices.map((vertex) => (
+                    <CommandItem
+                      key={vertex.value}
+                      value={vertex.value}
+                      onSelect={(currentValue) => {
+                        setTargetVertex(
+                          currentValue === targetVertex ? "" : currentValue
+                        );
+                        setOpenTarget(false);
+                      }}
+                    >
+                      {vertex.label}
+                      <Check
+                        className={cn(
+                          "ml-auto",
+                          targetVertex === vertex.value
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
 
       <Button
         onClick={runAlgorithm}
         disabled={
           !value ||
           !subValue ||
-          (selectedFramework?.requiresSource && !sourceVertex)
+          (selectedFramework?.requiresSource &&
+            (!sourceVertex || !targetVertex))
         }
       >
         Thực hiện thuật toán
