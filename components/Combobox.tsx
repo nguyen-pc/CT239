@@ -22,13 +22,14 @@ import { kruskal } from "@/app/algorthms/kuskal";
 import { prim } from "@/app/algorthms/prim";
 import { dijkstra } from "@/app/algorthms/dijkstra";
 import { floyd } from "@/app/algorthms/floyd";
+import { bruteForce } from "@/app/algorthms/brute-force";
 
 const frameworks = [
   {
     value: "TSP",
     label: "TSP",
     subOptions: [
-      { value: "nearest", label: "Nearest Neighbor" },
+      { value: "brute-force", label: "Brute Force" },
       { value: "genetic", label: "Genetic Algorithm" },
     ],
   },
@@ -82,6 +83,10 @@ export function ComboboxDemo() {
     }
 
     switch (subValue) {
+      case "brute-force":
+        const resultBrute = bruteForce(edges, vertexCount);
+        console.log(resultBrute);
+        break;
       case "kruskal":
         const resultKruskal = kruskal(edges, vertexCount);
         console.log(resultKruskal.totalWeight);
@@ -123,10 +128,9 @@ export function ComboboxDemo() {
           return;
         }
         const resultFloyd = floyd(edges, vertexCount, parseInt(sourceVertex));
-        console.log(resultFloyd)
+        console.log(resultFloyd);
 
-        setAlgorithmResultDijkstra(resultFloyd)
- 
+        setAlgorithmResultDijkstra(resultFloyd);
 
         break;
 
@@ -341,8 +345,7 @@ export function ComboboxDemo() {
       <Button
         onClick={runAlgorithm}
         disabled={
-          !value ||
-          !subValue 
+          !value || !subValue
           // ||
           // (selectedFramework?.requiresSource &&
           //   (!sourceVertex || !targetVertex)
