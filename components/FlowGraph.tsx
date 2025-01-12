@@ -1,20 +1,77 @@
 "use client";
 
-import { ReactFlow, Controls, Background, OnNodesChange, applyNodeChanges } from "@xyflow/react";
+import {
+  ReactFlow,
+  Controls,
+  Background,
+  OnNodesChange,
+  applyNodeChanges,
+  MarkerType,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import React from "react";
 import { useGraph } from "@/context/GraphContext";
 import CircleNode from "./CircleNode";
+import TreeNode from "./TreeNode";
+import FloatingEdge from "./FloatingEdge";
+import dagre from "@dagrejs/dagre";
 
 // Định nghĩa nodeTypes
 const nodeTypes = {
   circle: CircleNode,
+  tree: TreeNode,
 };
 
+const edgeTypes = {
+  floating: FloatingEdge,
+};
+
+const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+
+const nodeWidth = 172;
+const nodeHeight = 36;
+
 export function FlowGraph() {
-  const { edges: graphEdges, vertexCount, algorithmResult, algorithmResultDijkstra} = useGraph();
+  const {
+    edges: graphEdges,
+    vertexCount,
+    algorithmResult,
+    algorithmResultDijkstra,
+    algorithmResultBrute,
+  } = useGraph();
   const [nodes, setNodes] = React.useState([]);
   const [edges, setEdges] = React.useState([]);
+
+  const buildEdge = (
+    source: number,
+    target: number,
+    label: string,
+    isDirected: boolean,
+    color: string = "black"
+  ) => {
+    return {
+      id: `e:${source}-${target}`,
+      source: String(source),
+      target: String(target),
+      weight: label,
+      data: {
+        label,
+      },
+      type: "floating",
+      style: {
+        strokeWidth: 2,
+        stroke: color,
+      },
+      markerEnd: !isDirected
+        ? null
+        : {
+            type: MarkerType.ArrowClosed,
+            width: 10,
+            height: 10,
+            color: color,
+          },
+    };
+  };
 
   // Xử lý sự kiện khi nodes thay đổi (kéo thả)
   const onNodesChange: OnNodesChange = React.useCallback(
@@ -53,6 +110,7 @@ export function FlowGraph() {
           color: "#666",
         },
       }));
+      console.log(newEdges, newEdges);
 
       setNodes(newNodes);
       setEdges(newEdges);
@@ -111,14 +169,71 @@ export function FlowGraph() {
       });
 
       setEdges(updatedEdges);
+      console.log(nodes, edges);
     }
   }, [algorithmResultDijkstra]);
+
+  React.useEffect(() => {
+    if (algorithmResultBrute && edges.length > 0) {
+      // const { nodes: resultNodes, edges: resultEdges } = tspBruteForce(mat);
+      setEdges([]);
+      setNodes([]);
+      const minCost = algorithmResultBrute.resultNodes.reduce((acc, value) => {
+        if (!value.isLeaf) return acc;
+        return Math.min(acc, value.cost);
+      }, Infinity);
+
+      const nodes = algorithmResultBrute.resultNodes.map((value, i) => {
+        const res = {
+          id: String(value.id),
+          type: "tree",
+          data: {
+            label: `TT: ${i + 1} | TGT: ${value.cost}`,
+            path: value.isLeaf ? value.id : null,
+            style: {
+              backgroundColor: "#fff",
+              width: 150,
+              minHeight: 60,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "black",
+            },
+          },
+          position: {
+            x: 0,
+            y: 0,
+          },
+        };
+
+        if (value.isLeaf && value.cost === minCost) {
+          res.data.style.backgroundColor = "green";
+          res.data.style.color = "white";
+        }
+        return res;
+      });
+
+      const edges = algorithmResultBrute.resultEdges.map((value) => {
+        return buildEdge(
+          value.from,
+          value.to,
+          `${value.to[value.to.length - 1]} - [${value.cost}]`,
+          true,
+          "green"
+        );
+      });
+      setEdges(edges);
+      setNodes(nodes);
+      console.log(edges, nodes);
+    }
+  }, [algorithmResultBrute]);
   return (
     <div style={{ height: "100%" }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        // edgeTypes={edgeTypes}
         fitView
         onNodesChange={onNodesChange}
         defaultEdgeOptions={{

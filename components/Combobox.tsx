@@ -63,8 +63,13 @@ export function ComboboxDemo() {
   const [targetVertex, setTargetVertex] = React.useState("");
 
   // Lấy dữ liệu và functions từ context
-  const { edges, vertexCount, setAlgorithmResult, setAlgorithmResultDijkstra } =
-    useGraph();
+  const {
+    edges,
+    vertexCount,
+    setAlgorithmResult,
+    setAlgorithmResultDijkstra,
+    setAlgorithmResultBrute,
+  } = useGraph();
 
   const selectedFramework = frameworks.find(
     (framework) => framework.value === value
@@ -84,7 +89,8 @@ export function ComboboxDemo() {
 
     switch (subValue) {
       case "brute-force":
-        const resultBrute = bruteForce(edges, vertexCount);
+        const resultBrute = bruteForce(edges, vertexCount, 0);
+        setAlgorithmResultBrute(resultBrute);
         console.log(resultBrute);
         break;
       case "kruskal":

@@ -11,7 +11,10 @@ interface Edge {
 interface GraphContextType {
   algorithmResult: any;
   setAlgorithmResult: (result: any) => void;
+  algorithmResultDijkstra: any;
   setAlgorithmResultDijkstra: (result: any) => void;
+  algorithmResultBrute: any;
+   setAlgorithmResultBrute: (result: any) => void
   edges: Edge[];
   setEdges: (edges: Edge[]) => void;
   vertexCount: number;
@@ -34,6 +37,7 @@ export function useGraph() {
 export function GraphProvider({ children }: { children: React.ReactNode }) {
   const [algorithmResult, setAlgorithmResult] = useState<any>(null);
   const [algorithmResultDijkstra, setAlgorithmResultDijkstra] = useState<any>(null);
+  const [algorithmResultBrute, setAlgorithmResultBrute] = useState<any>(null)
   const [edges, setEdges] = useState<Edge[]>([]);
   const [vertexCount, setVertexCount] = useState<number>(0);
 
@@ -42,6 +46,8 @@ export function GraphProvider({ children }: { children: React.ReactNode }) {
     setAlgorithmResult,
     algorithmResultDijkstra,
     setAlgorithmResultDijkstra,
+    algorithmResultBrute,
+    setAlgorithmResultBrute,
     edges,
     setEdges,
     vertexCount,
